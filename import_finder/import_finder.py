@@ -7,6 +7,8 @@ TODO:
 """
 import click
 import re
+import os
+import distutils.sysconfig as sysconfig
 
 from .constants import STD_MODULES
 
@@ -30,8 +32,20 @@ def get_base_module(module):
     return module.split('.')[0]
 
 
+# list of standard modules
+def std_module_list():
+    ret_list = []
+    std_lib = sysconfig.get_python_lib(standard_lib=True)
+    # Walks through standard lib folders/files etc then returns list of modules
+    for top, dirs, files in os.walk(std_lib):
+        for nm in files:
+            if nm != '__init__.py' and nm[-3:] == '.py':
+                ret_list.append(os.path.join(top, nm)[len(std_lib)+1:-3].replace('\\','.'))
+    return ret_list
+
+
 def is_builtin_module(module):
-    return get_base_module(module) in STD_MODULES
+    return get_base_module(module) in std_module_list()
 
 
 @click.command()
